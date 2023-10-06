@@ -1,9 +1,9 @@
-#include <iostream>
 #include <fstream>
-#include <vector>
-#include <cmath>
 
-const char service_interp[] __attribute__((section(".interp"))) = "/lib/ld-linux-x86-64.so.2";
+void lib_entry(void)
+{  
+  _Exit(0);
+}
 
 // Определение функции, которую вы хотите интегрировать
 extern "C" {

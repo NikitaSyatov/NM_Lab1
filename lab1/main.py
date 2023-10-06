@@ -6,10 +6,9 @@ import PySimpleGUI as sg
 import pandas as pd
 # from Q_test import run_qtest
 import matplotlib.pyplot as plt
-import ctypes
+import ctypes as ct
 
-lib = ctypes.CDLL("/media/syatov430/Files/UNN/3_course/ЧМ/lab1/lab1/Q_test.so")
-
+lib = ct.CDLL("/home/syatov430/VAZHNO/NM_Lab1/lab1/Q_test_lib.so")
 # In[]:
 df = pd.DataFrame({
     '    Xi    ': [],
@@ -87,9 +86,10 @@ while True:                             # The Event Loop
     if event in (None, 'Exit', 'Cancel'):
         break
     if event == 'Submit':
-        u0 = 1. if window["-U1-"].Get() == True else -1.
-        # df = run_qtest(float(window["-HSTART-"].Get()), u0, 1000, 0.001, 0.0001)
-        lib.rungeKuttaAdaptive(float(window["-HSTART-"].Get()), u0, 1000, 0.001, 0.0001)
-        window["-TABLE-"].Update(values = df.values.tolist())
+        u0 = 1 if window["-U1-"].Get() == True else -1
+        # df = run_qtest(float(window["-HSTART-"].Get()), u0, 1000, 0.001, 0.0001).......|  float(window["-HSTART-"].Get())
+        lib.rungeKuttaAdaptive.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int]
+        lib.rungeKuttaAdaptive(0., 1., 0.01, 20., 0.0001, 0.0001, 1000) # x0, u0, h0, xmax, eps, eps_out, nmax
+        # window["-TABLE-"].Update(values = df.values.tolist())
 
 window.close()
