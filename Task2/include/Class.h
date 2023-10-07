@@ -56,6 +56,7 @@ public:
 	double get_x() { return x; }
 	double get_y1() { return y1; }
 	double get_y2() { return y2; }
+	double get_h() { return step; }
 
 	void delstep2() { step /= 2.0; }
 	void addstep2() { step *= 2.0; }
@@ -63,7 +64,7 @@ public:
 	int get_iteration() { return iteration; }
 	ostream& operator<<(ostream& os)
 	{
-		string tab = "	";
-		return os << iteration << tab << x << tab << y1 << tab << y2 << tab << step;
+		string tab = "\t\t";
+		return os << iteration << tab << x << tab << y1 << tab << y2 << tab << step  << tab ;
 	}
 };
