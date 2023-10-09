@@ -44,7 +44,7 @@ void rungeKutta(const double &x0,const double &y0,const double &h,const double &
 }
 
 extern "C" {
-void rungeKuttaAdaptive(const double &x0,const double &y0,const double &h0,const double &xmax,const double &eps,const double &eps_out,const int &Nmax)
+int rungeKuttaAdaptive(const double &x0,const double &y0,const double &h0,const double &xmax,const double &eps,const double &eps_out,const int &Nmax)
 {
     double x = x0;
     double y = y0;
@@ -56,7 +56,7 @@ void rungeKuttaAdaptive(const double &x0,const double &y0,const double &h0,const
     int step = 0;
 
     std::ofstream output;
-    output.open("/media/syatov430/Files/UNN/3_course/ЧМ/lab1/output.txt");
+    output.open("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
 
     // if (output.is_open())
     // {
@@ -103,10 +103,23 @@ void rungeKuttaAdaptive(const double &x0,const double &y0,const double &h0,const
             ++step;
         }
     }
+return 0;
 }
 }
 
 int main()
 {
+    setlocale(LC_ALL, "Russian");
+    double x0 = 0.0;     
+    double y0 = 1.0;         
+    double h0 = 0.01;          
+    double xmax = 20.0;   
+    double tolerance = 1e-6; 
+    double edge = 0.01;
+    int maxSteps = 1000;
+
+    rungeKuttaAdaptive(x0, y0, h0, xmax, tolerance, edge, maxSteps);
+    //rungeKutta(x0, y0, h0, xmax, maxSteps);
+
     return 0;
 }

@@ -109,7 +109,7 @@ int main()
 {
     setlocale(LC_ALL, "Russian");
     double x0 = 0.0;            // Начальная точка x
-    double y0 = 10.0;            // Начальное значение y
+    double y0 = 1.0;            // Начальное значение y
     double h0 = 0.01;            // Начальный размер шага
     double xmax = 20.0;          // Граница x
     double tolerance = 1e-6;   // Заданная точность
@@ -139,7 +139,7 @@ int main()
     std::cin >> maxSteps;*/
 
 
-     //
+    //
     rungeKuttaAdaptive(x0, y0, h0, xmax, tolerance, edge,maxSteps);
     //rungeKutta(x0, y0, h0, xmax, maxSteps);
 

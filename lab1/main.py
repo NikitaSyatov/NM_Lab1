@@ -4,7 +4,7 @@
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import PySimpleGUI as sg
 import pandas as pd
-# from Q_test import run_qtest
+from Q_test import run_qtest
 import matplotlib.pyplot as plt
 import ctypes as ct
 
@@ -21,7 +21,7 @@ df = pd.DataFrame({
 })
 
 fig, graf = plt.subplots(figsize=(5, 5))
-graf = plt.plot([1, 2, 3, 4], [1, 2, 3, 4])
+# graf = plt.plot([1, 2, 3, 4], [1, 2, 3, 4])
 
 list_q = ['Тестовая', 'Основная1', 'Основная2']
 
@@ -87,9 +87,14 @@ while True:                             # The Event Loop
         break
     if event == 'Submit':
         u0 = 1 if window["-U1-"].Get() == True else -1
-        # df = run_qtest(float(window["-HSTART-"].Get()), u0, 1000, 0.001, 0.0001).......|  float(window["-HSTART-"].Get())
+        df = run_qtest(float(window["-HSTART-"].Get()), u0, 1000, 0.001, 0.0001) #.......|  float(window["-HSTART-"].Get())
+        lib.rungeKuttaAdaptive.restype = ct.c_int
         lib.rungeKuttaAdaptive.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int]
         lib.rungeKuttaAdaptive(0., 1., 0.01, 20., 0.0001, 0.0001, 1000) # x0, u0, h0, xmax, eps, eps_out, nmax
         # window["-TABLE-"].Update(values = df.values.tolist())
+
+        # fig, graf = plt.subplots(figsize=(5, 5))
+        # graf = plt.plot(pd.Series(df['Xi']).tolist(), pd.Series(df['Vi']).tolist())
+        # canvas.draw()
 
 window.close()
