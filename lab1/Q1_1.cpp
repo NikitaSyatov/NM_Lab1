@@ -113,7 +113,7 @@ int main()
     double h0 = 0.01;            // Начальный размер шага
     double xmax = 20.0;          // Граница x
     double tolerance = 1e-6;   // Заданная точность
-    double edge = 0.01;
+    double edge = 0.001;
     int maxSteps = 1000;         // Максимальное количество шагов
 
      // Ввод значений из консоли

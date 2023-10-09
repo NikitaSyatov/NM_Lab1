@@ -44,7 +44,7 @@ void rungeKutta(const double &x0,const double &y0,const double &h,const double &
 }
 
 extern "C" {
-int rungeKuttaAdaptive(const double &x0,const double &y0,const double &h0,const double &xmax,const double &eps,const double &eps_out,const int &Nmax)
+int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps, double eps_out, int Nmax)
 {
     double x = x0;
     double y = y0;
@@ -55,15 +55,16 @@ int rungeKuttaAdaptive(const double &x0,const double &y0,const double &h0,const 
     int c2 = 0;
     int step = 0;
 
-    std::ofstream output;
-    output.open("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
-
+    FILE* output = fopen("/home/syatov430/VAZHNO/NM_Lab1/output.txt", "w");
+    // std::ofstream output = open("/home/syatov430/VAZHNO/NM_Lab1/output.txt")
     // if (output.is_open())
     // {
     //     std::cout << "YES" << std::endl;
     // }
 
-    output << "x" << "\t" << "v" << "\t" << "v2i" << "\t" << "E" << "\t" << "h" << "\t" << "c1" << "\t" << "c2" << std::endl;
+     
+    fprintf(output, "x\tv\tv2i\tE\th\tc1\tc2\n");
+    // output << "x" << "\t" << "v" << "\t" << "v2i" << "\t" << "E" << "\t" << "h" << "\t" << "c1" << "\t" << "c2" << std::endl;
 
     while (x < xmax&& std::abs(x-xmax)>eps_out && step < Nmax)
     {
@@ -84,13 +85,15 @@ int rungeKuttaAdaptive(const double &x0,const double &y0,const double &h0,const 
             y = rungeKuttaStep(x, y, h);
             ++c1;
             ++step;
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;          
+            fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
+            // output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;          
         }
         else if(error < eps/32)
         {
             y = y1;
             x += h;
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
+            fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
+            // output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
             h*=2;
             ++c2;
             ++step;
@@ -99,10 +102,13 @@ int rungeKuttaAdaptive(const double &x0,const double &y0,const double &h0,const 
         {
             y = y1;
             x += h;
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
+            fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
+            // output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
             ++step;
         }
     }
+
+    fclose(output);
 return 0;
 }
 }
