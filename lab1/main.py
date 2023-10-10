@@ -10,7 +10,7 @@ import ctypes as ct
 
 lib = ct.CDLL("/home/syatov430/VAZHNO/NM_Lab1/lab1/Q_test_lib.so")
 # In[]:
-df = pd.DataFrame({
+df_tmp = pd.DataFrame({
     '    Xi    ': [],
     '    Vi    ': [],
     '    V2i    ': [],
@@ -55,7 +55,7 @@ column2 = [
 ]
 
 column_table = [
-    [sg.Table(values=df.values.tolist(), headings=df.columns.tolist(),
+    [sg.Table(values=df_tmp.values.tolist(), headings=df_tmp.columns.tolist(),
             alternating_row_color='darkblue', key='-TABLE-',
             row_height = 25, vertical_scroll_only=False, size=(200, 100),
             justification='left', auto_size_columns=True)],
@@ -94,7 +94,8 @@ while True:                             # The Event Loop
         
         df = pd.read_table('output.txt', sep = "\t+", engine='python')
         
-        window["-TABLE-"].Update(values = df.values.tolist())
+        print(df.columns.to_list())
+        window["-TABLE-"].update(values = df.values.tolist())
 
         graf = plt.plot(pd.Series(df['x']).tolist(), pd.Series(df['v']).tolist())
         canvas.draw()
