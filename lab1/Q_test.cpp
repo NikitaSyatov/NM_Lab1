@@ -29,19 +29,22 @@ double rungeKuttaStep(const double &x, const double &y,const double &h)
 }
 
 extern "C" {
-void rungeKutta(const double &x0,const double &y0,const double &h,const double &xmax,const int &Nmax)
+int rungeKutta(double x0, double y0, double h, double xmax, int Nmax)
 {
     int step = 0;
     double x = x0;
     double y = y0;
 
     std::ofstream output("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
+    output << "x" << "\t" << "v" << std::endl;
     while (x < xmax && step < Nmax) {
         y = rungeKuttaStep(x, y, h);
         x = x + h;
-        output << x << '\t' << y;
+        output << x << '\t' << y << std::endl;
         ++step;
     }
+
+    return 0;
 }
 }
 
@@ -72,7 +75,6 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
 
         // Вычисляем оценку локальной погрешности
         error = (std::abs(y1 - y2))/15;
-        std::cout<<h<<"\n\n" << std::endl;
         // Проверяем, соответствует ли оценка погрешности заданной точности
         if (error > eps)
         {
@@ -103,26 +105,20 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
             ++step;
         }
     }
-    if (x+h > xmax && step < Nmax)
+    while (std::abs(x + h - xmax)>eps_out && step < Nmax)
     {
-        while (std::abs(x+h-xmax)>eps_out && step < Nmax)
+        if (x + h > xmax)
         {
-            if (x + h > xmax)
-            {
-                h = h/2;
-                x = x + h;
-                y = rungeKuttaStep(x, y, h);
-                x = x -  h;
-            }
-            else
-            {
-                output << x+h << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
-                x = x+h;
-            }
-            ++step;
+            h = h/2;
         }
-        
+        else
+        {
+            h = h + h/2;
+        }
+        ++step;
     }
+    output << x + h << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
+
     output.close();
     // fclose(output);
 return 0;
@@ -135,13 +131,13 @@ int main()
     double x0 = 0.0;     
     double y0 = 1.0;         
     double h0 = 0.01;          
-    double xmax = 25.0;   
+    double xmax = 20.0;   
     double tolerance = 1e-6; 
-    double edge = 0.01;
+    double edge = 0.1;
     int maxSteps = 1000;
 
     rungeKuttaAdaptive(x0, y0, h0, xmax, tolerance, edge, maxSteps);
-    //rungeKutta(x0, y0, h0, xmax, maxSteps);
+    // rungeKutta(x0, y0, h0, xmax, maxSteps);
 
     return 0;
 }
