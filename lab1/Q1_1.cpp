@@ -1,16 +1,22 @@
-#include <iostream>
-#include <vector>
+#include <fstream>
 #include <cmath>
-#include <iomanip>
+
+void lib_entry(void)
+{  
+  _Exit(0);
+}
 
 // Определение функции, которую вы хотите интегрировать
+extern "C" {
 double f(const double &x, const double &y)
 {
     // Здесь должна быть ваша функция
     return y*y/(1+x*x*x*x)+y-y*y*y*std::sin(x*10);
 }
+}
 
 // Метод Рунге-Кутты четвертого порядка
+extern "C" {
 double rungeKuttaStep(const double &x, const double &y,const double &h)
 {
     double k1 = h * f(x, y);
@@ -21,13 +27,17 @@ double rungeKuttaStep(const double &x, const double &y,const double &h)
     double y_next = y + (k1 + 2 * k2 + 2 * k3 + k4) / 6;
     return y_next;
 }
+}
 
-void rungeKutta(const double &x0,const double &y0,const double &h,const double &xmax,const int &maxSteps)
+extern "C"{
+int rungeKutta(double x0, double y0, double h, double xmax, int maxSteps)
 {
     int steps = 0;
     double x = x0;
     double y = y0;
+    std::ofstream output("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
 
+    output << "x" << "\t" << "v" << std::endl;
     while (x < xmax && steps < maxSteps) {
         double k1 = h * f(x, y);
         double k2 = h * f(x + h / 2, y + k1 / 2);
@@ -37,14 +47,19 @@ void rungeKutta(const double &x0,const double &y0,const double &h,const double &
         y = y + (k1 + 2 * k2 + 2 * k3 + k4) / 6;
         x = x + h;
 
-        std::cout << steps << '\t' << x<< '\t' << y << std::endl;
+        if (y == INFINITY || y == -NAN || std::fabs(y) > MAXFLOAT)
+            return 0;
+        output << x << '\t' << y << std::endl;
 
         ++steps;
     }
+    return 0;
+}
 }
 
-void rungeKuttaAdaptive(const double &x0,const double &y0,const double &h0,const double &xmax,const double &tolerance,const double &edge,const int &maxSteps)
- {
+extern "C" {
+int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps, double eps_out, int Nmax)
+{
     double x = x0;
     double y = y0;
     double h = h0;
@@ -52,57 +67,79 @@ void rungeKuttaAdaptive(const double &x0,const double &y0,const double &h0,const
     double y2;
     int c1 = 0;
     int c2 = 0;
-    int sumC = 0;
-    int steps = 0;
-    int a=15;
-    std::cout <<std::setw(4) << "шаг" <<std::setw(a) <<"x" <<std::setw(a)<< "y" <<std::setw(a)<< "y^"<<std::setw(a) << "|y-y^|"
-            <<std::setw(a)<< "E" <<std::setw(a)<<"h" <<std::setw(a)<< "c1" <<std::setw(a)<< "c2" << std::endl;
+    int step = 0;
+    double error = 0;
 
-    while (x < xmax&& std::abs(x-xmax)>edge&&steps < maxSteps)
+    // FILE* output = fopen("/home/syatov430/VAZHNO/NM_Lab1/output.txt", "w");
+    std::ofstream output("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
+    // fprintf(output, "x\tv\tv2i\tE\th\tc1\tc2\n");
+    output << "x" << "\t" << "v" << "\t" << "v2i" << "\t" << "E" << "\t" << "h" << "\t" << "c1" << "\t" << "c2" << std::endl;
+    
+    while ((x + h) < xmax && std::abs(x + h -xmax)>eps_out && step < Nmax)
     {
-
+        
         // Делаем два шага методом Рунге-Кутты с h и h/2
         y1 = rungeKuttaStep(x, y, h);
         y2 = rungeKuttaStep(x, y, h / 2);
         y2 = rungeKuttaStep(x + h / 2, y2, h / 2);
 
         // Вычисляем оценку локальной погрешности
-        double num=std::abs(y1 - y2);
-        double error = num/15;
-
+        error = (std::abs(y1 - y2))/15;
         // Проверяем, соответствует ли оценка погрешности заданной точности
-        if (error>tolerance)
+        if (error > eps)
         {
             h=h/2;
-            ++steps;
-            ++c1;
+            x += h;
+            y = rungeKuttaStep(x, y, h);
+            ++step;
+            c1 = 1;
+            // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
+            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;          
         }
-        else if(error< tolerance/32)
+        else if(error < eps/32)
         {
-            //int a=15;
             y = y1;
             x += h;
-            std::cout <<std::setw(4) << steps+1<<std::setw(a) << x <<std::setw(a)<< y <<std::setw(a)<< y2<<std::setw(a) << num
-            <<std::setw(a)<< error <<std::setw(a)<< h <<std::setw(a)<< c1 <<std::setw(a)<< 1 << std::endl;
+            // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
+            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
             h*=2;
-            sumC=sumC+c1+1;
-            c1=0;
-            c2=0;
-            ++steps;
+            c2 = 1;
+            ++step;
+            c1 = 0;
         }
         else
         {
-            //int a=15;
             y = y1;
             x += h;
-            std::cout <<std::setw(4) << steps+1<<std::setw(a) << x <<std::setw(a)<< y <<std::setw(a)<< y2<<std::setw(a) << num
-            <<std::setw(a)<< error <<std::setw(a)<< h <<std::setw(a)<< c1 <<std::setw(a)<< 1 << std::endl;
-            sumC=sumC+c1;
-            c1=0;
-            c2=0;
-            ++steps;
+            // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
+            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
+            c1 = 0;
+            c2 = 0;
+            ++step;
         }
     }
+
+    while (std::abs(x + h - xmax)>eps_out && step < Nmax)
+    {
+        c1 = 0;
+        c2 = 0;
+        if (x + h > xmax)
+        {
+            h = h/2;
+            ++c1;
+        }
+        else
+        {
+            h = h + h/2;
+        }
+        ++step;
+    }
+    output << x + h << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
+
+    output.close();
+    // fclose(output);
+return 0;
+}
 }
 
 int main()
@@ -110,38 +147,14 @@ int main()
     setlocale(LC_ALL, "Russian");
     double x0 = 0.0;            // Начальная точка x
     double y0 = 1.0;            // Начальное значение y
-    double h0 = 0.01;            // Начальный размер шага
+    double h0 = 0.1;            // Начальный размер шага
     double xmax = 20.0;          // Граница x
-    double tolerance = 1e-6;   // Заданная точность
-    double edge = 0.001;
+    // double tolerance = 1e-6;   // Заданная точность
+    // double edge = 0.001;
     int maxSteps = 1000;         // Максимальное количество шагов
 
-     // Ввод значений из консоли
-   /* std::cout << "Введите начальную точку x: ";
-    std::cin >> x0;
-
-    std::cout << "Введите начальное значение y: ";
-    std::cin >> y0;
-
-    std::cout << "Введите начальный размер шага h: ";
-    std::cin >> h0;
-
-    std::cout << "Введите границу x: ";
-    std::cin >> xmax;
-
-    std::cout << "Введите заданную точность tolerance: ";
-    std::cin >> tolerance;
-
-    std::cout << "Введите значение edge: ";
-    std::cin >> edge;
-
-    std::cout << "Введите максимальное количество шагов maxSteps: ";
-    std::cin >> maxSteps;*/
-
-
-    //
-    rungeKuttaAdaptive(x0, y0, h0, xmax, tolerance, edge,maxSteps);
-    //rungeKutta(x0, y0, h0, xmax, maxSteps);
+    // rungeKuttaAdaptive(x0, y0, h0, xmax, tolerance, edge,maxSteps);
+    rungeKutta(x0, y0, h0, xmax, maxSteps);
 
     return 0;
 }

@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <math.h>
 
 void lib_entry(void)
 {  
@@ -13,6 +14,13 @@ double f(const double &x, const double &y)
     // Здесь должна быть ваша функция
     return -(1./2.) * y;
 }
+}
+
+extern "C" {
+    double u(const double &x)
+    {
+        return std::exp(-0.5*x);
+    }
 }
 // Метод Рунге-Кутты четвертого порядка
 extern "C" {
@@ -64,10 +72,11 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
     // FILE* output = fopen("/home/syatov430/VAZHNO/NM_Lab1/output.txt", "w");
     std::ofstream output("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
     // fprintf(output, "x\tv\tv2i\tE\th\tc1\tc2\n");
-    output << "x" << "\t" << "v" << "\t" << "v2i" << "\t" << "E" << "\t" << "h" << "\t" << "c1" << "\t" << "c2" << std::endl;
-
-    while ((x + h) < xmax && std::abs(x-xmax)>eps_out && step < Nmax)
+    output << "x" << "\t" << "v" << "\t" << "v2i" << "\t" << "E" << "\t" << "h" << "\t" << "c1" << "\t" << "c2" << "\t" << "|ui-vi|" << std::endl;
+    
+    while ((x + h) < xmax && std::abs(x + h -xmax)>eps_out && step < Nmax)
     {
+        
         // Делаем два шага методом Рунге-Кутты с h и h/2
         y1 = rungeKuttaStep(x, y, h);
         y2 = rungeKuttaStep(x, y, h / 2);
@@ -82,34 +91,41 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
             x += h;
             y = rungeKuttaStep(x, y, h);
             ++step;
-            ++c1;
+            c1 = 1;
             // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;          
+            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << std::fabs(u(x) - y) << std::endl;          
         }
         else if(error < eps/32)
         {
             y = y1;
             x += h;
             // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
+            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << std::fabs(u(x) - y) << std::endl;
             h*=2;
-            ++c2;
+            c2 = 1;
             ++step;
+            c1 = 0;
         }
         else
         {
             y = y1;
             x += h;
             // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
+            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << std::fabs(u(x) - y) << std::endl;
+            c1 = 0;
+            c2 = 0;
             ++step;
         }
     }
+
     while (std::abs(x + h - xmax)>eps_out && step < Nmax)
     {
+        c1 = 0;
+        c2 = 0;
         if (x + h > xmax)
         {
             h = h/2;
+            ++c1;
         }
         else
         {
@@ -117,7 +133,7 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
         }
         ++step;
     }
-    output << x + h << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << std::endl;
+    output << x + h << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << std::fabs(u(x) - y) << std::endl;
 
     output.close();
     // fclose(output);

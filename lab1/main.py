@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import ctypes as ct
 import tkinter as tk
+import sys
+import traceback
 
 # In[]:
 lib1 = ct.CDLL("/home/syatov430/VAZHNO/NM_Lab1/lab1/Q_test_lib.so")
@@ -15,15 +17,33 @@ lib1.rungeKuttaAdaptive.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_
 
 lib1.rungeKutta.restype = ct.c_int
 lib1.rungeKutta.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int]
+
 # In[]:
+lib2 = ct.CDLL("/home/syatov430/VAZHNO/NM_Lab1/lab1/Q1_lib.so")
+lib2.rungeKuttaAdaptive.restype = ct.c_int
+lib2.rungeKuttaAdaptive.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int]
+
+lib2.rungeKutta.restype = ct.c_int
+lib2.rungeKutta.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int]
+
+# In[]:
+lib3 = ct.CDLL("/home/syatov430/VAZHNO/NM_Lab1/lab1/Q2_lib.so")
+
+lib3.RK4.restype = ct.c_int
+lib3.RK4.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int, ct.c_double, ct.c_double]
+
+# In[]:
+
 df_tmp = pd.DataFrame({
-    '    Xi    ': [],
-    '    Vi    ': [],
-    '    V2i    ': [],
-    '    ОЛП    ': [],
-    '    Hi    ': [],
-    '    C1    ': [],
-    '    C2    ': [],
+    '    1    ': [],
+    '    2    ': [],
+    '    3    ': [],
+    '    4    ': [],
+    '    5    ': [],
+    '    6    ': [],
+    '    7    ': [],
+    '    8    ': [],
+    '    9    ': [],
 })
 
 fig, graf = plt.subplots(figsize=(5, 5))
@@ -40,7 +60,8 @@ frame_adaptive = [
 ]
 
 frame_output_data = [
-    [sg.Output(size=(55, 15), key="-DATA-")],
+    [sg.Output(size=(55, 14), key="-DATA-")],
+    [sg.Button("Clear", size=(55, 1))],
 ]
 
 # In[]:
@@ -69,7 +90,7 @@ column_table = [
     [sg.Table(values=df_tmp.values.tolist(), headings=df_tmp.columns.tolist(),
             alternating_row_color='darkblue', key='-TABLE-',
             row_height = 25, vertical_scroll_only=False, size=(200, 100),
-            justification='left', auto_size_columns=True)],
+            justification='left')],
 ]
 
 column_graf = [
@@ -92,6 +113,10 @@ canvas_elem = window["-CANVAS-"]
 canvas = FigureCanvasTkAgg(fig, master=canvas_elem.Widget)
 canvas.get_tk_widget().pack(side='top', fill='both', expand=True)
 
+def update_title(table, headings):
+    for cid, text in zip(df_tmp.columns.tolist(), headings):
+        table.heading(cid, text=text)
+
 def on_resize(event):
     if (last_w_size != window.size):
         width, height = window.size
@@ -106,27 +131,62 @@ while True:                             # The Event Loop
     event, values = window.read()
     window.FindElement('-DATA-').Update('')
     # print(event, values) #debug
-
+    
     if event in (None, 'Exit', 'Cancel'):
         break
 
     if event == 'Submit':
         select_query = values['-SELECTOR-']
         select_adaptive = values['-ADAPTIVE-']
+        id_adapt = True
         u0 = 1. if window["-U1-"].Get() == True else -1.
         if select_query == list_q[0]:
             if select_adaptive:
                 lib1.rungeKuttaAdaptive(0., u0, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), float(window["-EPS-"].Get()), float(window["-EPSOUT-"].Get()), int(window["-NMAX-"].Get())) # x0, u0, h0, xmax, eps, eps_out, nmax
             else:
+                id_adapt = False
                 lib1.rungeKutta(0., u0, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), int(window["-NMAX-"].Get()))
+        elif select_query == list_q[1]:
+            if select_adaptive:
+                lib2.rungeKuttaAdaptive(0., u0, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), float(window["-EPS-"].Get()), float(window["-EPSOUT-"].Get()), int(window["-NMAX-"].Get())) # x0, u0, h0, xmax, eps, eps_out, nmax
+            else:
+                id_adapt = False
+                lib2.rungeKutta(0., u0, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), int(window["-NMAX-"].Get()))
+        elif select_query == list_q[2]:
+            lib3.RK4(0., u0, u0, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), 1., int(window["-NMAX-"].Get()), float(window["-EPS-"].Get()), float(window["-EPSOUT-"].Get()))
 
         df = pd.read_table('output.txt', sep = "\t+", engine='python')
+
+        table = window.Element("-TABLE-").Widget
+
+        update_title(table, df.columns.tolist())
         
-        window["-TABLE-"].update(values = df.values.tolist())
+        window.Element("-TABLE-").Update(values = df.values.tolist())
 
-        print("\n  U0 = " + str(u0))
-
-        graf = plt.plot(pd.Series(df['x']).tolist(), pd.Series(df['v']).tolist())
+        if id_adapt:
+            count_row = df['x'].shape[0]
+            print("\n  U0 = " + str(u0) +
+                "\n  n = " + str(count_row-1) + 
+                "\n  Число удвоений: " + str(sum(df['c2'].values.tolist())) +
+                "\n  Число делений: " + str(sum(df['c1'].values.tolist())) + 
+                "\n  Максимальный шаг: " + str(max(df['h'].tolist())) +
+                "\n  Минимальный шаг: " + str(min(df['h'].tolist())))
+        else:
+            count_row = df['x'].shape[0]
+            print("\n  U0 = " + str(u0) + "\n  n = " + str(count_row) + "\n  Шаг: " + window["-HSTART-"].Get())
+        
+        if select_query != list_q[2]:
+            graf = plt.plot(pd.Series(df['x']).tolist(), pd.Series(df['v']).tolist())
+        else:
+            graf = plt.plot(pd.Series(df['v']).tolist(), pd.Series(df["v'"]).tolist())
         canvas.draw()
+    if event == "Clear":
+        fig.clear()
+        canvas.draw()
+    # try
+    # except Exception as e:
+    #     exc_type, exc_value, exc_traceback = sys.exc_info()
+    
+    # traceback.print_exception(exc_type, exc_value, exc_traceback)
 
 window.close()
