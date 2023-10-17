@@ -70,7 +70,7 @@ public:
 };
 
 extern "C" {
-int RK4(double xstart, double y1start, double y2start, double stepstart,double Xmax, double a = 1.0, int maxSteps = 9999, double tolerance = 0.00001, double edge = 0.0000001)
+int RK4(double xstart, double y1start, double y2start, double stepstart,double Xmax, double a = 1.0, int maxSteps = 9999, double tolerance = 0.00001, double edge = 0.0000001, int examination = 1)
 {
 	execution a1(xstart, y1start, y2start, stepstart, a),tmp(a1);
 	execution a05(xstart, y1start, y2start, stepstart/2.0, a);
@@ -117,43 +117,45 @@ int RK4(double xstart, double y1start, double y2start, double stepstart,double X
         a05.delstep2();
         a05.RK4();
         a05.RK4();
-
-        S1 = fabs(a1.get_y1() - a05.get_y1()) / (pow(2, p) - 1);
-        S2 = fabs(a1.get_y2() - a05.get_y2()) / (pow(2, p) - 1);
-
-        Normal = sqrt(pow(S1,2) + pow(S2,2));
-
-        if (Normal < Epsilon / (pow(2, p + 1)))
+        if (examination)
         {
-            C2++;
-            flg1 = 1;
-        }
-
-        while (Normal > Epsilon)
-        {
-            flg2++;
-            C1++;
-            a1 = tmp;
-            a1.delstep2();
-            tmp = a1;
-            a05 = a1;
-            a05.delstep2();
-
-            a1.RK4();
-            a05.RK4();
-            a05.RK4();
-
             S1 = fabs(a1.get_y1() - a05.get_y1()) / (pow(2, p) - 1);
             S2 = fabs(a1.get_y2() - a05.get_y2()) / (pow(2, p) - 1);
 
             Normal = sqrt(pow(S1, 2) + pow(S2, 2));
+
+            if (Normal < Epsilon / (pow(2, p + 1)))
+            {
+                C2++;
+                flg1 = 1;
+            }
+
+            while (Normal > Epsilon)
+            {
+                flg2++;
+                C1++;
+                a1 = tmp;
+                a1.delstep2();
+                tmp = a1;
+                a05 = a1;
+                a05.delstep2();
+
+                a1.RK4();
+                a05.RK4();
+                a05.RK4();
+
+                S1 = fabs(a1.get_y1() - a05.get_y1()) / (pow(2, p) - 1);
+                S2 = fabs(a1.get_y2() - a05.get_y2()) / (pow(2, p) - 1);
+
+                Normal = sqrt(pow(S1, 2) + pow(S2, 2));
+            }
         }
 
         if (out1.is_open())
         {
             out1 << a1.get_x() << '\t' << a1.get_y1() << '\t' << a05.get_y1() << '\t' << a1.get_y2() << '\t' << a05.get_y2() << '\t' << a1.get_h() << '\t' << Normal << '\t' << C1 << '\t' << C2 << std::endl;
         }
-
+        if (examination)
         if (flg1)
         {
             a1.addstep2();
@@ -168,29 +170,5 @@ int RK4(double xstart, double y1start, double y2start, double stepstart,double X
 
 int main()
 {
-    //execution First(0.0, 1.0, 0.0, 0.1, 1.0);// ��� ������� (x0,y(x0),y`(x0),h,a-��������)
-    //double maxX = 3.0;// �� ������ � ����� �������
-    //ofstream out;
-    //out.open("../Execution/ux2");//���� � ������� ������������, � ���� ��� ��������� ������ � ux2
-    //if (out.is_open())
-    //{
-    //    First << out;//������ ���� ������� �������
-    //    out << endl;
-    //}
-    // while (First.get_x() < maxX)
-    //{
-    //    First.RK4();
-    //    if (out.is_open())
-    //    {
-    //        First << out;//����������� ��������
-    //        out << endl;
-    //    }
-    //}
-    //out.close();
-    //cout << "File has been written" << endl;
-
-
-    RK4(0.0,0.0,1.0,0.1,3.0,1);
-
-
+    RK4(0.0,0.0,1.0,0.1,3.0,1,9999, 0.00001, 0.0000001,1);
 }
