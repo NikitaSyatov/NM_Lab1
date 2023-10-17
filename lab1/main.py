@@ -30,7 +30,7 @@ lib2.rungeKutta.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, 
 lib3 = ct.CDLL("/home/syatov430/VAZHNO/NM_Lab1/lab1/Q2_lib.so")
 
 lib3.RK4.restype = ct.c_int
-lib3.RK4.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int, ct.c_double, ct.c_double]
+lib3.RK4.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int, ct.c_double, ct.c_double, ct.c_int]
 
 # In[]:
 
@@ -51,8 +51,12 @@ fig, graf = plt.subplots(figsize=(5, 5))
 
 list_q = ['Тестовая', 'Основная1', 'Основная2']
 
-frame_start_condition = [
+frame_start_condition1 = [
     [sg.Radio('1', default=True, group_id=1, key="-U1-"), sg.Radio('-1', group_id=1, key="-U-1-")],
+]
+
+frame_start_condition2 = [
+    [sg.Radio('1', default=True, group_id=3, key="-U2-"), sg.Radio('-1', group_id=3, key="-U-2-")],
 ]
 
 frame_adaptive = [
@@ -60,14 +64,15 @@ frame_adaptive = [
 ]
 
 frame_output_data = [
-    [sg.Output(size=(55, 14), key="-DATA-")],
+    [sg.Output(size=(55, 17), key="-DATA-")],
     [sg.Button("Clear", size=(55, 1))],
 ]
 
 # In[]:
 column1 = [
     [sg.DropDown(list_q, default_value=list_q[0], size=(25, 1), key='-SELECTOR-')],
-    [sg.Frame("Начальные Условия", frame_start_condition, size=(180, 50))],
+    [sg.Frame("Начальные Условия", frame_start_condition1, size=(180, 50))],
+    [sg.Frame("Н. У. для u2 (основная2):", frame_start_condition2, size=(180, 50))],
     [sg.Frame("Контроль шага", frame_adaptive, size=(180, 50))],
     [sg.Submit(size=(24, 1))],
     [sg.Exit(size=(24, 1))]
@@ -84,6 +89,8 @@ column2 = [
     [sg.InputText(default_text="0.1", size=(30, 1), key='-HSTART-')],
     [sg.Text("Максимальный X")],
     [sg.InputText(default_text="20", size=(30, 1), key='-XMAX-')],
+    [sg.Text("Параметр a: (основная2)")],
+    [sg.InputText(default_text="1", size=(30,1), key="-A-")],
 ]
 
 column_table = [
@@ -140,6 +147,7 @@ while True:                             # The Event Loop
         select_adaptive = values['-ADAPTIVE-']
         id_adapt = True
         u0 = 1. if window["-U1-"].Get() == True else -1.
+        u1 = 1. if window["-U2-"].Get() == True else -1.
         if select_query == list_q[0]:
             if select_adaptive:
                 lib1.rungeKuttaAdaptive(0., u0, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), float(window["-EPS-"].Get()), float(window["-EPSOUT-"].Get()), int(window["-NMAX-"].Get())) # x0, u0, h0, xmax, eps, eps_out, nmax
@@ -153,7 +161,10 @@ while True:                             # The Event Loop
                 id_adapt = False
                 lib2.rungeKutta(0., u0, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), int(window["-NMAX-"].Get()))
         elif select_query == list_q[2]:
-            lib3.RK4(0., u0, u0, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), 1., int(window["-NMAX-"].Get()), float(window["-EPS-"].Get()), float(window["-EPSOUT-"].Get()))
+            if select_adaptive:
+                lib3.RK4(0., u0, u1, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), float(window["-A-"].Get()), int(window["-NMAX-"].Get()), float(window["-EPS-"].Get()), float(window["-EPSOUT-"].Get()), 1)
+            else:
+                lib3.RK4(0., u0, u1, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), float(window["-A-"].Get()), int(window["-NMAX-"].Get()), float(window["-EPS-"].Get()), float(window["-EPSOUT-"].Get()), 0)
 
         df = pd.read_table('output.txt', sep = "\t+", engine='python')
 
@@ -179,6 +190,9 @@ while True:                             # The Event Loop
             graf = plt.plot(pd.Series(df['x']).tolist(), pd.Series(df['v']).tolist())
         else:
             graf = plt.plot(pd.Series(df['v']).tolist(), pd.Series(df["v'"]).tolist())
+
+        if select_query == list_q[0]:
+            graf = plt.plot(pd.Series(df['x']).tolist(), pd.Series(df['u']).tolist())
         canvas.draw()
     if event == "Clear":
         fig.clear()

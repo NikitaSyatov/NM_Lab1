@@ -44,11 +44,11 @@ int rungeKutta(double x0, double y0, double h, double xmax, int Nmax)
     double y = y0;
 
     std::ofstream output("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
-    output << "x" << "\t" << "v" << std::endl;
+    output << "x" << "\t" << "v" << '\t' << "u" << std::endl;
     while (x < xmax && step < Nmax) {
         y = rungeKuttaStep(x, y, h);
         x = x + h;
-        output << x << '\t' << y << std::endl;
+        output << x << '\t' << y << '\t' << u(x) << std::endl;
         ++step;
     }
 
@@ -72,7 +72,7 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
     // FILE* output = fopen("/home/syatov430/VAZHNO/NM_Lab1/output.txt", "w");
     std::ofstream output("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
     // fprintf(output, "x\tv\tv2i\tE\th\tc1\tc2\n");
-    output << "x" << "\t" << "v" << "\t" << "v2i" << "\t" << "E" << "\t" << "h" << "\t" << "c1" << "\t" << "c2" << "\t" << "|ui-vi|" << std::endl;
+    output << "x" << "\t" << "v" << "\t" << "v2i" << "\t" << "E" << "\t" << "h" << "\t" << "c1" << "\t" << "c2" << "\t" << "u" << '\t' << "|ui-vi|" << std::endl;
     
     while ((x + h) < xmax && std::abs(x + h -xmax)>eps_out && step < Nmax)
     {
@@ -93,14 +93,14 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
             ++step;
             c1 = 1;
             // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << std::fabs(u(x) - y) << std::endl;          
+            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x) << '\t' << std::fabs(u(x) - y) << std::endl;          
         }
         else if(error < eps/32)
         {
             y = y1;
             x += h;
             // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << std::fabs(u(x) - y) << std::endl;
+            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x) << '\t' << std::fabs(u(x) - y) << std::endl;
             h*=2;
             c2 = 1;
             ++step;
@@ -111,7 +111,7 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
             y = y1;
             x += h;
             // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << std::fabs(u(x) - y) << std::endl;
+            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x) << '\t' << std::fabs(u(x) - y) << std::endl;
             c1 = 0;
             c2 = 0;
             ++step;
@@ -133,7 +133,7 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
         }
         ++step;
     }
-    output << x + h << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << std::fabs(u(x) - y) << std::endl;
+    output << x + h << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x) << '\t' << std::fabs(u(x) - y) << std::endl;
 
     output.close();
     // fclose(output);
