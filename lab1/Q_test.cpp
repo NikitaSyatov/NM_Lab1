@@ -17,9 +17,9 @@ double f(const double &x, const double &y)
 }
 
 extern "C" {
-    double u(const double &x)
+    double u(const double &x, const double &C)
     {
-        return std::exp(-0.5*x);
+        return C*(std::exp(-(0.5)*x));
     }
 }
 // Метод Рунге-Кутты четвертого порядка
@@ -43,12 +43,12 @@ int rungeKutta(double x0, double y0, double h, double xmax, int Nmax)
     double x = x0;
     double y = y0;
 
-    std::ofstream output("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
+    std::ofstream output("../NM_Lab1/output.txt");
     output << "x" << "\t" << "v" << '\t' << "u" << std::endl;
     while (x < xmax && step < Nmax) {
         y = rungeKuttaStep(x, y, h);
         x = x + h;
-        output << x << '\t' << y << '\t' << u(x) << std::endl;
+        output << x << '\t' << y << '\t' << u(x, y0) << std::endl;
         ++step;
     }
 
@@ -70,13 +70,13 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
     double error = 0;
 
     // FILE* output = fopen("/home/syatov430/VAZHNO/NM_Lab1/output.txt", "w");
-    std::ofstream output("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
+    std::string path("../NM_Lab1/output.txt");
+    std::ofstream output(path);
     // fprintf(output, "x\tv\tv2i\tE\th\tc1\tc2\n");
     output << "x" << "\t" << "v" << "\t" << "v2i" << "\t" << "E" << "\t" << "h" << "\t" << "c1" << "\t" << "c2" << "\t" << "u" << '\t' << "|ui-vi|" << std::endl;
     
-    while ((x + h) < xmax && std::abs(x + h -xmax)>eps_out && step < Nmax)
+    while (x + h < xmax && std::abs(x + h - xmax)>eps_out && step < Nmax)
     {
-        
         // Делаем два шага методом Рунге-Кутты с h и h/2
         y1 = rungeKuttaStep(x, y, h);
         y2 = rungeKuttaStep(x, y, h / 2);
@@ -88,19 +88,19 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
         if (error > eps)
         {
             h=h/2;
-            x += h;
-            y = rungeKuttaStep(x, y, h);
+            //x += h;
+            //y = rungeKuttaStep(x, y, h);
             ++step;
-            c1 = 1;
+            c1 += 1;
             // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x) << '\t' << std::fabs(u(x) - y) << std::endl;          
+            //output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x, y0) << '\t' << std::fabs(u(x, y0) - y) << std::endl;          
         }
         else if(error < eps/32)
         {
             y = y1;
             x += h;
             // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x) << '\t' << std::fabs(u(x) - y) << std::endl;
+            output << x << "\t" << y << "\t" << y2 << "\t" << error*16 << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x, y0) << '\t' << std::fabs(u(x, y0) - y) << std::endl;
             h*=2;
             c2 = 1;
             ++step;
@@ -111,29 +111,28 @@ int rungeKuttaAdaptive(double x0, double y0, double h0, double xmax, double eps,
             y = y1;
             x += h;
             // fprintf(output, "%lf\t%lf\t%lf\t%lf\t%lf\t%i\t%i\n", x, y, y2, error, h, c1, c2);
-            output << x << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x) << '\t' << std::fabs(u(x) - y) << std::endl;
+            output << x << "\t" << y << "\t" << y2 << "\t" << error*16 << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x, y0) << '\t' << std::fabs(u(x, y0) - y) << std::endl;
             c1 = 0;
             c2 = 0;
             ++step;
         }
     }
 
-    while (std::abs(x + h - xmax)>eps_out && step < Nmax)
+    // if (std::abs(x + h - xmax)>eps_out && step < Nmax)
+    // {
+        
+    //     ++step;
+    // }
+    if (x + h > xmax)
     {
-        c1 = 0;
-        c2 = 0;
-        if (x + h > xmax)
-        {
-            h = h/2;
-            ++c1;
-        }
-        else
-        {
-            h = h + h/2;
-        }
-        ++step;
+        h = xmax - x;
+        ++c1;
+        output << x + h << "\t" << y << "\t" << y2 << "\t" << error*16 << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x, y0) << '\t' << std::fabs(u(x, y0) - y) << std::endl;
     }
-    output << x + h << "\t" << y << "\t" << y2 << "\t" << error << "\t" << h << "\t" << c1 << "\t" << c2 << "\t" << u(x) << '\t' << std::fabs(u(x) - y) << std::endl;
+        // else
+        // {
+        //     h = h + h/2;
+        // }
 
     output.close();
     // fclose(output);
@@ -146,7 +145,7 @@ int main()
     setlocale(LC_ALL, "Russian");
     double x0 = 0.0;     
     double y0 = 1.0;         
-    double h0 = 0.01;          
+    double h0 = 0.1;          
     double xmax = 20.0;   
     double tolerance = 1e-6; 
     double edge = 0.1;

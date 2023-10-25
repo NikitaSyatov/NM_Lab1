@@ -11,7 +11,7 @@ import sys
 import traceback
 
 # In[]:
-lib1 = ct.CDLL("/home/syatov430/VAZHNO/NM_Lab1/lab1/Q_test_lib.so")
+lib1 = ct.CDLL("lab1/Q_test_lib.so")
 lib1.rungeKuttaAdaptive.restype = ct.c_int
 lib1.rungeKuttaAdaptive.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int]
 
@@ -19,7 +19,7 @@ lib1.rungeKutta.restype = ct.c_int
 lib1.rungeKutta.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int]
 
 # In[]:
-lib2 = ct.CDLL("/home/syatov430/VAZHNO/NM_Lab1/lab1/Q1_lib.so")
+lib2 = ct.CDLL("lab1/Q1_lib.so")
 lib2.rungeKuttaAdaptive.restype = ct.c_int
 lib2.rungeKuttaAdaptive.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int]
 
@@ -27,7 +27,7 @@ lib2.rungeKutta.restype = ct.c_int
 lib2.rungeKutta.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int]
 
 # In[]:
-lib3 = ct.CDLL("/home/syatov430/VAZHNO/NM_Lab1/lab1/Q2_lib.so")
+lib3 = ct.CDLL("lab1/Q2_lib.so")
 
 lib3.RK4.restype = ct.c_int
 lib3.RK4.argtypes = [ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_int, ct.c_double, ct.c_double, ct.c_int]
@@ -141,7 +141,6 @@ while True:                             # The Event Loop
     
     if event in (None, 'Exit', 'Cancel'):
         break
-
     if event == 'Submit':
         select_query = values['-SELECTOR-']
         select_adaptive = values['-ADAPTIVE-']
@@ -166,6 +165,7 @@ while True:                             # The Event Loop
             else:
                 lib3.RK4(0., u0, u1, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), float(window["-A-"].Get()), int(window["-NMAX-"].Get()), float(window["-EPS-"].Get()), float(window["-EPSOUT-"].Get()), 0)
 
+    
         df = pd.read_table('output.txt', sep = "\t+", engine='python')
 
         table = window.Element("-TABLE-").Widget
@@ -187,12 +187,12 @@ while True:                             # The Event Loop
             print("\n  U0 = " + str(u0) + "\n  n = " + str(count_row) + "\n  Шаг: " + window["-HSTART-"].Get())
         
         if select_query != list_q[2]:
-            graf = plt.plot(pd.Series(df['x']).tolist(), pd.Series(df['v']).tolist())
+            graf = plt.plot(pd.Series(df['x']).tolist(), pd.Series(df['v']).tolist(), 'b-')
         else:
             graf = plt.plot(pd.Series(df['v']).tolist(), pd.Series(df["v'"]).tolist())
 
         if select_query == list_q[0]:
-            graf = plt.plot(pd.Series(df['x']).tolist(), pd.Series(df['u']).tolist())
+            graf = plt.plot(pd.Series(df['x']).tolist(), pd.Series(df['u']).tolist(), 'r-')
         canvas.draw()
     if event == "Clear":
         fig.clear()

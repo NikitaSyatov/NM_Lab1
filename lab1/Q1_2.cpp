@@ -32,22 +32,20 @@ public:
 		double steplast = step;
 		double h = step / 2.0;
 
-
-
 		double ky11 = f1(x, y1, y2);
 		double ky21 = f2(x, y1, y2);
 
-		double ky12 = f1(x + h, y1 + h * ky11, y2 + h * ky21);
-		double ky22 = f2(x + h, y1 + h * ky11, y2 + h * ky21);
+		double ky12 = f1(x + h, y1 + h/2 * ky11, y2 + h/2 * ky21);
+		double ky22 = f2(x + h, y1 + h/2 * ky11, y2 + h/2 * ky21);
 
-		double ky13 = f1(x + h, y1 + h * ky12, y2 + h * ky22);
-		double ky23 = f2(x + h, y1 + h * ky12, y2 + h * ky22);
+		double ky13 = f1(x + h, y1 + h/2 * ky12, y2 + h/2 * ky22);
+		double ky23 = f2(x + h, y1 + h/2 * ky12, y2 + h/2 * ky22);
 
-		double ky14 = f1(x + h, y1 + h * ky13, y2 + h * ky23);
-		double ky24 = f2(x + h, y1 + h * ky13, y2 + h * ky23);
+		double ky14 = f1(x + h, y1 + h/2 * ky13, y2 + h/2 * ky23);
+		double ky24 = f2(x + h, y1 + h/2 * ky13, y2 + h/2 * ky23);
 
-		y1 = y1 + h * (ky11 + 2 * ky12 + 2 * ky13 + ky14);
-		y2 = y2 + h * (ky21 + 2 * ky22 + 2 * ky23 + ky24);
+		y1 = y1 + h * (ky11 + 2 * ky12 + 2 * ky13 + ky14) / 6;
+		y2 = y2 + h * (ky21 + 2 * ky22 + 2 * ky23 + ky24) / 6;
 
 		x = xlast + steplast;
 
@@ -87,7 +85,7 @@ int RK4(double xstart, double y1start, double y2start, double stepstart,double X
 
     std::ofstream out1;
 
-    out1.open("/home/syatov430/VAZHNO/NM_Lab1/output.txt");
+    out1.open("../NM_Lab1/output.txt");
 
     if (out1.is_open())
     {
@@ -96,7 +94,6 @@ int RK4(double xstart, double y1start, double y2start, double stepstart,double X
 
     while (maxSteps > a1.get_iteration() && a1.get_x()<Xmax)
     {
-
         if (fabs(Xmax -(a1.get_x() + a1.get_h())) < edge)
         {
             break;
@@ -154,6 +151,7 @@ int RK4(double xstart, double y1start, double y2start, double stepstart,double X
         if (out1.is_open())
         {
             out1 << a1.get_x() << '\t' << a1.get_y1() << '\t' << a05.get_y1() << '\t' << a1.get_y2() << '\t' << a05.get_y2() << '\t' << a1.get_h() << '\t' << Normal << '\t' << C1 << '\t' << C2 << std::endl;
+            C1 = 0; C2 = 0;
         }
         if (examination)
         if (flg1)
@@ -170,5 +168,5 @@ int RK4(double xstart, double y1start, double y2start, double stepstart,double X
 
 int main()
 {
-    RK4(0.0,0.0,1.0,0.1,3.0,1,9999, 0.00001, 0.0000001,1);
+    RK4(0.0,0.0,1.0,0.1,3.0,1,10000, 0.0000001, 0.0000001, 1);
 }
