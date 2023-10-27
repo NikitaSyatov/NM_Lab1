@@ -89,7 +89,7 @@ int RK4(double xstart, double y1start, double y2start, double stepstart,double X
 
     if (out1.is_open())
     {
-        out1 << 'x' << '\t' << 'v' << '\t' << "v2i" << '\t' << "v'" << '\t' << "v'2i" << '\t' << 'h' << '\t' << 'E' << '\t' << "c1" << '\t' << "c2" << std::endl;
+        out1 << 'x' << '\t' << 'v' << '\t' << "v2i" << '\t' << "v'" << '\t' << "v'2i" << '\t' << 'h' << '\t' << 'E' << '\t' << '\t' << "E_v" << '\t' << "E_v'" << "\t" << "c1" << '\t' << "c2" << std::endl;
     }
 
     while (maxSteps > a1.get_iteration() && a1.get_x()<Xmax)
@@ -150,7 +150,7 @@ int RK4(double xstart, double y1start, double y2start, double stepstart,double X
 
         if (out1.is_open())
         {
-            out1 << a1.get_x() << '\t' << a1.get_y1() << '\t' << a05.get_y1() << '\t' << a1.get_y2() << '\t' << a05.get_y2() << '\t' << a1.get_h() << '\t' << Normal << '\t' << C1 << '\t' << C2 << std::endl;
+            out1 << a1.get_x() << '\t' << a1.get_y1() << '\t' << a05.get_y1() << '\t' << a1.get_y2() << '\t' << a05.get_y2() << '\t' << a1.get_h() << '\t' << Normal*16 << '\t' << S1*16 << '\t' << S2*16 << '\t' << C1 << '\t' << C2 << std::endl;
             C1 = 0; C2 = 0;
         }
         if (examination)

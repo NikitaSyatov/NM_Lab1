@@ -1,4 +1,9 @@
-#!/usr/bin/env python
+#!/bin/sh
+#!/bin/bash
+#!/bin/env python
+#!/usr/bin/env rdmd
+# -*- coding: utf-8 -*-
+# ./.venv/bin/python
 #GUI application
 
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -44,6 +49,8 @@ df_tmp = pd.DataFrame({
     '    7    ': [],
     '    8    ': [],
     '    9    ': [],
+    '    10   ': [],
+    '    11   ': [],
 })
 
 fig, graf = plt.subplots(figsize=(5, 5))
@@ -138,7 +145,7 @@ while True:                             # The Event Loop
     event, values = window.read()
     window.FindElement('-DATA-').Update('')
     # print(event, values) #debug
-    
+    # try:
     if event in (None, 'Exit', 'Cancel'):
         break
     if event == 'Submit':
@@ -165,7 +172,6 @@ while True:                             # The Event Loop
             else:
                 lib3.RK4(0., u0, u1, float(window["-HSTART-"].Get()), float(window["-XMAX-"].Get()), float(window["-A-"].Get()), int(window["-NMAX-"].Get()), float(window["-EPS-"].Get()), float(window["-EPSOUT-"].Get()), 0)
 
-    
         df = pd.read_table('output.txt', sep = "\t+", engine='python')
 
         table = window.Element("-TABLE-").Widget
@@ -173,6 +179,7 @@ while True:                             # The Event Loop
         update_title(table, df.columns.tolist())
         
         window.Element("-TABLE-").Update(values = df.values.tolist())
+    
 
         if id_adapt:
             count_row = df['x'].shape[0]
@@ -181,10 +188,11 @@ while True:                             # The Event Loop
                 "\n  Число удвоений: " + str(sum(df['c2'].values.tolist())) +
                 "\n  Число делений: " + str(sum(df['c1'].values.tolist())) + 
                 "\n  Максимальный шаг: " + str(max(df['h'].tolist())) +
-                "\n  Минимальный шаг: " + str(min(df['h'].tolist())))
+                "\n  Минимальный шаг: " + str(min(df['h'].tolist())) + 
+                "\n  Максимальная погрешность: " + str(max(df['E'].tolist())))
         else:
             count_row = df['x'].shape[0]
-            print("\n  U0 = " + str(u0) + "\n  n = " + str(count_row) + "\n  Шаг: " + window["-HSTART-"].Get())
+            print("\n  U0 = " + str(u0) + "\n  n = " + str(count_row) + "\n Шаг: " + window["-HSTART-"].Get())
         
         if select_query != list_q[2]:
             graf = plt.plot(pd.Series(df['x']).tolist(), pd.Series(df['v']).tolist(), 'b-')
@@ -197,10 +205,8 @@ while True:                             # The Event Loop
     if event == "Clear":
         fig.clear()
         canvas.draw()
-    # try
     # except Exception as e:
-    #     exc_type, exc_value, exc_traceback = sys.exc_info()
-    
-    # traceback.print_exception(exc_type, exc_value, exc_traceback)
+    #         exc_type, exc_value, exc_traceback = sys.exc_info()
 
+# traceback.print_exception(exc_type, exc_value, exc_traceback)
 window.close()
